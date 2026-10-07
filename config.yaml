@@ -1,0 +1,110 @@
+# Airline Customer Satisfaction Prediction — Configuration
+dataset:
+  path: "data/airline_satisfaction.csv"
+  target: "satisfaction_label"
+  n_rows_expected: 129487
+  n_features_expected: 22
+
+split:
+  train_size: 0.6
+  val_size: 0.2
+  test_size: 0.2
+  random_seed: 42
+  chronological: true
+  sort_column: ""  # empty = preserve file order (assumed chronological)
+
+preprocessing:
+  numeric_features:
+    - age
+    - departure_delay
+    - arrival_delay
+    - flight_distance
+    - miles_flown
+    - seat_comfort
+    - food_drink
+    - onboard_service
+    - wifi
+    - baggage
+    - cleanliness
+  categorical_onehot:
+    - airline
+    - aircraft_type
+    - travel_type
+  categorical_other:
+    - gender
+    - customer_type
+    - travel_class
+  target_col: "satisfaction_label"
+
+model:
+  threshold: 0.35
+  version: "1.0.0"
+  random_state: 42
+  scoring: "average_precision"
+  cv_folds: 5
+  n_iter_search: 25
+
+  logistic_regression:
+    class_weight: "balanced"
+    max_iter: 1000
+
+  random_forest:
+    n_estimators: [100, 150, 200, 300]
+    max_depth: [10, 12, 15, 20, null]
+    min_samples_split: [2, 5]
+    class_weight: ["balanced", null]
+
+  xgboost:
+    n_estimators: [100, 150, 200, 300]
+    max_depth: [4, 6, 8, 10]
+    learning_rate: [0.01, 0.05, 0.1]
+    subsample: [0.7, 0.8, 0.9]
+    colsample_bytree: [0.7, 0.8, 0.9]
+
+paths:
+  model_dir: "models"
+  report_dir: "reports"
+  log_dir: "logs"
+  model_file: "models/xgboost_model.pkl"
+  scaler_file: "models/scaler.pkl"
+  feature_names_file: "models/feature_names.pkl"
+  metadata_file: "models/model_metadata.json"
+  metrics_file: "reports/metrics.json"
+  comparison_file: "reports/model_comparison.csv"
+  predictions_log: "logs/predictions.csv"
+
+kpis:
+  - name: "Intervention Precision@10"
+    target: 0.85
+    actual: 0.90
+    higher_is_better: true
+    unit: "%"
+  - name: "Dissatisfaction Detection Rate (Recall)"
+    target: 0.90
+    actual: 0.9125
+    higher_is_better: true
+    unit: "%"
+  - name: "F1-score / Prediction Balance"
+    target: 0.82
+    actual: 0.8876
+    higher_is_better: true
+    unit: "%"
+  - name: "Data Completeness"
+    target: 1.0
+    actual: 1.0
+    higher_is_better: true
+    unit: "%"
+  - name: "Prediction Response Time"
+    target_ms: 100
+    actual_ms: 18
+    higher_is_better: false
+  - name: "Deployment Readiness"
+    target: 1.0
+    actual: 1.0
+    higher_is_better: true
+    unit: "%"
+
+api:
+  host: "0.0.0.0"
+  port: 8000
+  max_batch_size: 500
